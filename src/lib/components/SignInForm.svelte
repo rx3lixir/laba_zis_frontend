@@ -2,11 +2,11 @@
   import { type SubmitFunction } from "@sveltejs/kit";
 
   import { enhance } from "$app/forms";
-  import { auth } from "$lib/stores/auth";
   import { goto } from "$app/navigation";
 
   let email = $state('');
   let password = $state('');
+
   let isSubmitting = $state(false);
   let errors = $state<{ email?: string; password?: string; general?: string }>({});
 
@@ -23,6 +23,8 @@
   }
 
   const handleSubmit: SubmitFunction = () => {
+    console.log('[SignInForm] Form submission started');
+
     isSubmitting = true;
     errors = {};
 
@@ -30,6 +32,7 @@
     const passwordError = validatePassword(password);
 
     if (emailError || passwordError) {
+      console.log('[SignInForm] Validation failed', { emailError, passwordError });
       errors = {
         email: emailError,
         password: passwordError
@@ -38,14 +41,19 @@
       return () => {};
     }
 
+    console.log('[SignInForm] Validation passed, submitting to server');
+
     return async ({ result, update }) => {
+      console.log('[SignInForm] Server response received', { type: result.type });
+
       await update();
 
       // Check for successful signin
       if (result.type === 'success' && result.data?.success) {
-        auth.setAuth(result.data.accessToken, result.data.user);
+        console.log('[SignInForm] Sign in successful, redirecting to home');
         goto("/");
       } else if (result.type === 'failure') {
+        console.log('[SignInForm] Sign in failed', { error: result.data?.error });
         errors = { general: result.data?.error || "Sign in failed" };
       }
       

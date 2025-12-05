@@ -1,7 +1,7 @@
 <script lang="ts">
-  import SignInForm from "$lib/components/SignInForm.svelte";
+  import SignUpForm from "$lib/components/SignUpForm.svelte";
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-stone-100">
-  <SignInForm />
+  <SignUpForm/>
 </div>
