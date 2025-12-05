@@ -71,7 +71,7 @@
 <div class="max-w-md w-full space-y-8 p-8 bg-stone-100 rounded-lg shadow">
   <!-- Header -->
   <div>
-    <h2 class="text-3xl text-stone-700 font-bold text-center">Sign In 🔑</h2>
+    <h2 class="text-3xl text-stone-700 font-bold text-center">Sign Up 🔑</h2>
   </div>
 
   <form 

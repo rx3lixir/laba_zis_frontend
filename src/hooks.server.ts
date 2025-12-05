@@ -65,7 +65,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
       path: "/",
       httpOnly: true,
       secure: false, // Set to true in production
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 

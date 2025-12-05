@@ -1,15 +1,17 @@
-import { fail, redirect } from "@sveltejs/kit";
+import { redirect, fail } from "@sveltejs/kit";
+
+import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
 const log = {
   info: (message: string, data?: any) => {
-    console.log(`[SIGNIN INFO] ${message}`, data ? data : "");
+    console.log(`[SIGNUP INFO] ${message}`, data ? data : "");
   },
   error: (message: string, error?: any) => {
-    console.error(`[SIGNIN ERROR] ${message}`, error ? error : "");
+    console.error(`[SIGNUP ERROR] ${message}`, error ? error : "");
   },
   debug: (message: string, data?: any) => {
-    console.log(`[SIGNIN DEBUG] ${message}`, data ? data : "");
+    console.log(`[SIGNUP DEBUG] ${message}`, data ? data : "");
   },
 };
 
@@ -21,7 +23,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     });
     throw redirect(303, "/");
   }
-  log.debug("Loading signin page for unauthenticated user");
+  log.debug("Loading signup page for unauthenticated user");
   return {};
 };
 
@@ -36,16 +38,81 @@ export const actions = {
     log.info("Signup attempt", {
       email: email?.toLowerCase().trim(),
       username: username,
-      password: password,
     });
 
-    if (!email || !username || !password) {]
-      log.error("Validation failed: missing email or password");
+    // Server side validation
+    if (!email || !username || !password) {
+      log.error("Validation failed: missing email, username or password");
       return fail(400, {
-        error: "Email and password are required",
+        error: "Email, username and password are required",
         email: email || "",
         username: username || "",
       });
     }
+
+    try {
+      log.debug("Sending signup request to backend");
+
+      const response = await fetch("http://localhost:8080/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.toLowerCase().trim(),
+          username: username.trim(),
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        log.error(`Signup failed with status ${response.status}`, {
+          error: errorData.error,
+          email: email.toLowerCase().trim(),
+          username: username.trim(),
+        });
+
+        return fail(response.status, {
+          error: errorData.error || "Sign up failed",
+          email,
+          username,
+        });
+      }
+
+      const data = await response.json();
+
+      log.info("Signup successful", {
+        userId: data.user.id,
+        username: data.user.username,
+        email: data.user.email,
+        hasAccessToken: !!data.access_token,
+        hasRefreshToken: !!data.refresh_token,
+      });
+
+      // Storing refresh token in http-only cookie (same as signin)
+      cookies.set("refreshToken", data.refresh_token, {
+        path: "/",
+        httpOnly: true,
+        secure: false, // Set true with HTTPS
+        sameSite: "lax", // Changed to lax!
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      log.debug("Refresh token stored in httpOnly cookie");
+
+      // Return access token and user data to the client
+      return {
+        success: true,
+        accessToken: data.access_token,
+        user: data.user,
+      };
+    } catch (error) {
+      log.error("Signup error - network or parsing issue", error);
+
+      return fail(500, {
+        error: "An unexpected error occured. Please try again",
+      });
+    }
   },
-};
+} satisfies Actions;
