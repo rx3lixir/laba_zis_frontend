@@ -15,7 +15,7 @@ const log = {
   },
 };
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ fetch, locals }) => {
   // If user is not authenticated, redirect to signin
   if (!locals.user) {
     throw redirect(303, "/signin");
@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     log.debug("Fetching user rooms");
 
     // Fetch all rooms the user is part of
-    const roomsResponse = await fetch(`http://localhost:8080/api/rooms`, {
+    const roomsResponse = await fetch("/api/rooms", {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${locals.accessToken}`,
@@ -116,15 +116,12 @@ export const actions = {
       log.debug("Fetching user by email", { email: participantEmail });
 
       // Getting user by provided email
-      const userResponse = await fetch(
-        `http://localhost:8080/api/user/email/${participantEmail}`,
-        {
-          headers: {
-            "Content-type": "application/json",
-            Authorization: `Bearer ${locals.accessToken}`,
-          },
+      const userResponse = await fetch(`/api/user/email/${participantEmail}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${locals.accessToken}`,
         },
-      );
+      });
 
       if (!userResponse.ok) {
         if (userResponse.status === 404) {
@@ -168,19 +165,16 @@ export const actions = {
       });
 
       // Making create room request passing id from response
-      const createRoomResponse = await fetch(
-        `http://localhost:8080/api/rooms`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${locals.accessToken}`,
-          },
-          body: JSON.stringify({
-            participants_ids: [participantID],
-          }),
+      const createRoomResponse = await fetch(`/api/rooms`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${locals.accessToken}`,
         },
-      );
+        body: JSON.stringify({
+          participants_ids: [participantID],
+        }),
+      });
 
       if (!createRoomResponse.ok) {
         if (createRoomResponse.status === 401) {

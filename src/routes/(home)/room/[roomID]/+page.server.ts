@@ -27,15 +27,12 @@ export const load: PageServerLoad = async ({ params, locals, fetch }) => {
   try {
     log.debug("Fetching room details from backend");
 
-    const roomResponse = await fetch(
-      `http://localhost:8080/api/rooms/${roomID}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${locals.accessToken}`,
-        },
+    const roomResponse = await fetch(`/api/rooms/${roomID}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${locals.accessToken}`,
       },
-    );
+    });
 
     if (!roomResponse.ok) {
       if (roomResponse.status === 401) {

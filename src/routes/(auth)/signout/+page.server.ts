@@ -13,6 +13,13 @@ export const actions = {
       sameSite: "lax",
     });
 
+    cookies.delete("accessToken", {
+      path: "/",
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+
     console.log("[SIGNOUT] Refresh token cleared, redirecting to signin");
 
     // Redirect to signin page
