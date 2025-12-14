@@ -1,7 +1,7 @@
 <script lang="ts">
-  import SignInForm from "$lib/components/SignInForm.svelte";
+    import AuthForm from "$lib/components/auth/AuthForm.svelte";
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-stone-100">
-  <SignInForm />
+<div class="min-h-screen flex items-center justify-center bg-muted/50 p-4">
+  <AuthForm mode="signin"/>
 </div>
